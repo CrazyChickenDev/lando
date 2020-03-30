@@ -131,7 +131,7 @@ if [ "$DATABASE" != "none" ]; then
   PULL_DB="$(echo $(terminus connection:info $SITE.$DATABASE --field=mysql_command) | sed 's,^mysql,mysqldump --no-autocommit --single-transaction --opt -Q,')"
 
   # Switch to drushy pull if we can
-  if [ "$FRAMEWORK" != "wordpress" ]; then
+  if [ "$FRAMEWORK" != "wordpress" ] && [ "$FRAMEWORK" != "wordpress_network" ]; then
 
     # Get drush aliases
     echo "Downloading drush aliases..."
@@ -173,9 +173,13 @@ if [ "$DATABASE" != "none" ]; then
   # Do some post DB things on WP
   if [ "$FRAMEWORK" == "wordpress" ]; then
     echo "Doing the ole post-migration search-replace on WordPress..."
-    cd /app && wp search-replace "$ENV-$SITE.pantheonsite.io" "${LANDO_APP_NAME}.${LANDO_DOMAIN}"
+    cd /app && wp search-replace "$ENV-$SITE.pantheonsite.io" "${LANDO_APP_NAME}.${LANDO_DOMAIN}" --skip-plugins --skip-themes
   fi
 
+  if [ "$FRAMEWORK" == "wordpress_network" ]; then
+    echo "Doing the ole post-migration search-replace on Wordpress ... Network Style! The --url param will be $ENV-$SITE.pantheonsite.io"
+    cd /app && wp search-replace "${ENV}-${SITE}.pantheonsite.io" "${LANDO_APP_NAME}.${LANDO_DOMAIN}" --url="http://${ENV}-${SITE}.pantheonsite.io" --network --skip-plugins --skip-themes
+  fi
 fi
 
 # Get the files
